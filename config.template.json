@@ -1,0 +1,16 @@
+{
+  "dataverse": {
+    "url": "https://[your-org].crm.dynamics.com",
+    "username": "user@your-domain.com",
+    "password": "your-password"
+  },
+  "export": {
+    "entity": "account",
+    "view": "active-accounts",
+    "output": {
+      "directory": "./output",
+      "fileName": "{entity}_{timestamp}.csv"
+    },
+    "pageSize": 5000
+  }
+}
