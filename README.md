@@ -1,69 +1,106 @@
 # Dataverse CSV Exporter
 
-Dynamics 365 Sales の Dataverse からエンティティ名とビュー名を指定してデータを CSV にエクスポートするコンソールアプリケーションです。
+A console application that exports data from Dynamics 365 Sales Dataverse to CSV by specifying entity name and view name.
 
-## 機能
+> **Note:**
+> 日本語版ドキュメントは[こちら](README.ja.md)をご覧ください。
 
-- JSON 設定ファイルによる柔軟な構成
-- Dataverse API との認証と接続
-- ページネーション処理による大量データの効率的な取得
-- CSV ファイルへのストリーミング出力
-- エラーハンドリングとログ出力
+## Features
 
-## 必要要件
+- Flexible configuration using JSON settings file
+- Authentication and connection with Dataverse API
+- Efficient retrieval of large data sets through pagination
+- Streaming output to CSV files
+- Error handling and logging
+
+## Requirements
 
 - .NET 8.0 SDK
-- Dynamics 365 Sales 環境へのアクセス権限
-- Azure AD 認証が有効なユーザーアカウント
+- Access rights to Dynamics 365 Sales environment
+- User account with Azure AD authentication enabled
 
-## ビルド手順
+## Build Instructions
 
-1. リポジトリのクローン
+1. Clone the repository
 
 ```bash
 git clone [repository-url]
 cd DataverseCsvExporter
 ```
 
-2. 依存パッケージのリストア
+2. Restore dependencies
 
 ```bash
 dotnet restore
 ```
 
-3. ビルド
+3. Build
 
 ```bash
 dotnet build
 ```
 
-## 実行準備
+## Creating Standalone Binary
 
-1. 設定ファイルの準備
+Instructions for creating standalone binary files for Windows environment.
+
+1. Build for x64 architecture
+
+```bash
+dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+```
+
+2. Build for x86 architecture
+
+```bash
+dotnet publish -c Release -r win-x86 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+```
+
+3. Build for ARM64 architecture
+
+```bash
+dotnet publish -c Release -r win-arm64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+```
+
+The built binaries are generated in the following directories:
+
+- x64: `bin/Release/net8.0/win-x64/publish/DataverseCsvExporter.exe`
+- x86: `bin/Release/net8.0/win-x86/publish/DataverseCsvExporter.exe`
+- ARM64: `bin/Release/net8.0/win-arm64/publish/DataverseCsvExporter.exe`
+
+Notes:
+
+- The generated EXE files can run independently without .NET Runtime
+- config.json must be in the same directory as the executable file
+- Write permissions to the output directory (default: ./output) are required
+
+## Setup
+
+1. Prepare configuration file
 
 ```bash
 cp config.template.json config.json
 ```
 
-2. `config.json` を編集し、以下の設定を行う
+2. Edit `config.json` with the following settings:
 
-- Dataverse の接続情報
-  - `url`: Dynamics 365 環境の URL
-    - 形式: `https://[your-org].crm.dynamics.com`
-    - 例: `https://contoso.crm.dynamics.com`
-  - `username`: ユーザー名（E メールアドレス）
-    - 形式: `user@your-domain.com`
-    - 例: `john.doe@contoso.com`
-  - `password`: パスワード
-- エクスポート設定
-  - `entity`: エクスポートするエンティティ名
-  - `view`: 使用するビュー名
-  - `output`: 出力設定
-    - `directory`: 出力ディレクトリ
-    - `fileName`: 出力ファイル名（{entity}と{timestamp}は自動で置換）
-  - `pageSize`: 1 回のリクエストで取得するレコード数
+- Dataverse connection information
+  - `url`: Dynamics 365 environment URL
+    - Format: `https://[your-org].crm.dynamics.com`
+    - Example: `https://contoso.crm.dynamics.com`
+  - `username`: Username (email address)
+    - Format: `user@your-domain.com`
+    - Example: `john.doe@contoso.com`
+  - `password`: Password
+- Export settings
+  - `entity`: Entity name to export
+  - `view`: View name to use
+  - `output`: Output settings
+    - `directory`: Output directory
+    - `fileName`: Output filename ({entity} and {timestamp} are automatically replaced)
+  - `pageSize`: Number of records to retrieve per request
 
-設定例：
+Configuration example:
 
 ```json
 {
@@ -84,112 +121,78 @@ cp config.template.json config.json
 }
 ```
 
-## スタンドアローンバイナリの作成
+## Execution
 
-Windows 環境で実行可能なスタンドアローンバイナリを作成する手順です。
-
-1. x64 アーキテクチャ向けビルド
-
-```bash
-dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
-```
-
-2. x86 アーキテクチャ向けビルド
-
-```bash
-dotnet publish -c Release -r win-x86 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
-```
-
-3. ARM64 アーキテクチャ向けビルド
-
-```bash
-dotnet publish -c Release -r win-arm64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
-```
-
-ビルドされたバイナリは以下のディレクトリに生成されます：
-
-- x64: `bin/Release/net8.0/win-x64/publish/DataverseCsvExporter.exe`
-- x86: `bin/Release/net8.0/win-x86/publish/DataverseCsvExporter.exe`
-- ARM64: `bin/Release/net8.0/win-arm64/publish/DataverseCsvExporter.exe`
-
-注意事項：
-
-- 生成された EXE ファイルは.NET Runtime に依存せず、単独で実行可能です
-- アプリケーションの実行には、config.json が実行ファイルと同じディレクトリに必要です
-- 出力ディレクトリ（デフォルト: ./output）への書き込み権限が必要です
-
-## 実行手順
-
-1. アプリケーションの実行
+1. Run the application
 
 ```bash
 dotnet run
 ```
 
-2. 実行結果の確認
+2. Check the results
 
-- エクスポートされた CSV ファイルは`output`ディレクトリに保存されます
-- ファイル名は`{entity}_{timestamp}.csv`の形式で生成されます
-  - 例：`account_20250407141023.csv`
-- エラーが発生した場合は、コンソールにエラーメッセージが表示されます
+- Exported CSV files are saved in the `output` directory
+- Filenames are generated in the format `{entity}_{timestamp}.csv`
+  - Example: `account_20250407141023.csv`
+- If an error occurs, an error message will be displayed in the console
 
-## 認証について
+## Authentication
 
-このアプリケーションは、OAuth 認証を使用して Dataverse に接続します。認証は以下の手順で行われます：
+This application connects to Dataverse using OAuth authentication. Authentication proceeds as follows:
 
-1. ユーザー名とパスワードによる認証
-2. Azure AD を介したトークンの取得
-3. Dataverse API へのアクセス
+1. Authentication with username and password
+2. Token acquisition through Azure AD
+3. Access to Dataverse API
 
-認証に関する注意事項：
+Authentication notes:
 
-- アカウントは Azure AD 認証に対応している必要があります
-- 多要素認証（MFA）が有効な場合は、アプリケーションパスワードの使用を検討してください
-- ユーザーアカウントに適切な権限が付与されている必要があります
+- Account must support Azure AD authentication
+- If multi-factor authentication (MFA) is enabled, consider using an application password
+- User account must have appropriate permissions
 
-## エラーハンドリング
+## Error Handling
 
-主なエラーメッセージと対処方法：
+Main error messages and troubleshooting:
 
-1. 設定エラー
+1. Configuration Errors
 
-   - 設定ファイルが見つからない場合
-   - 必須項目が未設定の場合
-   - ⇒ config.json の内容を確認してください
+   - When configuration file is not found
+   - When required items are not set
+   - ⇒ Please check the contents of config.json
 
-2. 接続エラー
+2. Connection Errors
 
-   - Dataverse への接続に失敗した場合
-   - ⇒ 以下を確認してください：
-     - URL が正しい形式（https://[your-org].crm.dynamics.com）か
-     - ユーザー名が正しい E メールアドレス形式か
-     - パスワードが正しいか
-     - アカウントが Azure AD 認証に対応しているか
-     - 多要素認証が有効な場合、アプリケーションパスワードを使用しているか
+   - When connection to Dataverse fails
+   - ⇒ Please check:
+     - If URL is in correct format (https://[your-org].crm.dynamics.com)
+     - If username is in correct email address format
+     - If password is correct
+     - If account supports Azure AD authentication
+     - If using application password when MFA is enabled
 
-3. データ取得エラー
+3. Data Retrieval Errors
 
-   - エンティティやビューが存在しない場合
-   - アクセス権限がない場合
-   - ⇒ エンティティ名、ビュー名、およびユーザーの権限を確認してください
+   - When entity or view does not exist
+   - When lacking access permissions
+   - ⇒ Please check entity name, view name, and user permissions
 
-4. ファイル操作エラー
-   - 出力ディレクトリへの書き込み権限がない場合
-   - ⇒ 出力ディレクトリのパスと権限を確認してください
+4. File Operation Errors
+   - When lacking write permissions to output directory
+   - ⇒ Please check output directory path and permissions
 
-## トラブルシューティング
+## Troubleshooting
 
-1. 認証エラーが発生する場合
+1. Authentication Errors
 
-   - Azure Portal でアプリケーションの登録を確認
-   - ユーザーの権限を確認
-   - 多要素認証の設定を確認
+   - Check application registration in Azure Portal
+   - Check user permissions
+   - Check MFA settings
 
-2. データが取得できない場合
+2. Data Retrieval Issues
 
-   - ビュー名とエンティティ名の大文字小文字を確認
-   - ユーザーがビューにアクセスできることを確認
+   - Check case sensitivity of view name and entity name
+   - Verify user has access to the view
 
-3. パフォーマンスの問題
-   - pageSize の値を調整（デフォルト: 5000）
-   - ネットワーク接続を確認
+3. Performance Issues
+   - Adjust pageSize value (default: 5000)
+   - Check network connection
