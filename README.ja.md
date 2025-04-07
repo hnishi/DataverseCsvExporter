@@ -93,19 +93,19 @@ Windows および macOS 環境で実行可能なスタンドアローンバイ�
 1. x64 アーキテクチャ向けビルド
 
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
 ```
 
 2. x86 アーキテクチャ向けビルド
 
 ```bash
-dotnet publish -c Release -r win-x86 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+dotnet publish -c Release -r win-x86 --self-contained true /p:PublishSingleFile=true
 ```
 
 3. ARM64 アーキテクチャ向けビルド
 
 ```bash
-dotnet publish -c Release -r win-arm64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+dotnet publish -c Release -r win-arm64 --self-contained true /p:PublishSingleFile=true
 ```
 
 Windows 向けのビルドされたバイナリは以下のディレクトリに生成されます：
@@ -119,13 +119,13 @@ Windows 向けのビルドされたバイナリは以下のディレクトリに
 1. Intel Mac（x64）向けビルド
 
 ```bash
-dotnet publish -c Release -r osx-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+dotnet publish -c Release -r osx-x64 --self-contained true /p:PublishSingleFile=true
 ```
 
 2. Apple Silicon Mac（ARM64）向けビルド
 
 ```bash
-dotnet publish -c Release -r osx-arm64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+dotnet publish -c Release -r osx-arm64 --self-contained true /p:PublishSingleFile=true
 ```
 
 macOS 向けのビルドされたバイナリは以下のディレクトリに生成されます：

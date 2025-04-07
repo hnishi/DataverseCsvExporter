@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using DataverseCsvExporter.Models;
+using System.Text.Json;
 
 namespace DataverseCsvExporter.Services;
 
@@ -10,6 +11,11 @@ public class ConfigurationManager
 
     public ConfigurationManager(string configPath = "config.json")
     {
+        var jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
         _configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile(configPath, optional: false)
@@ -18,7 +24,11 @@ public class ConfigurationManager
 
     public void LoadConfiguration()
     {
-        _settings = _configuration.Get<Configuration>();
+        var jsonConfig = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "config.json"));
+        _settings = JsonSerializer.Deserialize<Configuration>(jsonConfig, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
         ValidateConfiguration();
     }
 

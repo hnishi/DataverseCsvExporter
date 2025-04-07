@@ -49,19 +49,19 @@ Instructions for creating standalone binary files for Windows and macOS environm
 1. Build for x64 architecture
 
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
 ```
 
 2. Build for x86 architecture
 
 ```bash
-dotnet publish -c Release -r win-x86 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+dotnet publish -c Release -r win-x86 --self-contained true /p:PublishSingleFile=true
 ```
 
 3. Build for ARM64 architecture
 
 ```bash
-dotnet publish -c Release -r win-arm64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+dotnet publish -c Release -r win-arm64 --self-contained true /p:PublishSingleFile=true
 ```
 
 The built binaries for Windows are generated in the following directories:
@@ -75,13 +75,13 @@ The built binaries for Windows are generated in the following directories:
 1. Build for Intel Mac (x64)
 
 ```bash
-dotnet publish -c Release -r osx-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+dotnet publish -c Release -r osx-x64 --self-contained true /p:PublishSingleFile=true
 ```
 
 2. Build for Apple Silicon Mac (ARM64)
 
 ```bash
-dotnet publish -c Release -r osx-arm64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+dotnet publish -c Release -r osx-arm64 --self-contained true /p:PublishSingleFile=true
 ```
 
 The built binaries for macOS are generated in the following directories:
