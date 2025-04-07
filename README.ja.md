@@ -61,6 +61,7 @@ cp config.template.json config.json
   - `output`: 出力設定
     - `directory`: 出力ディレクトリ
     - `fileName`: 出力ファイル名（{entity}と{timestamp}は自動で置換）
+    - `useBom`: UTF-8 エンコードの CSV ファイルに BOM を付与するかどうか（true/false、デフォルト: true）
   - `pageSize`: 1 回のリクエストで取得するレコード数
 
 設定例：
@@ -77,7 +78,8 @@ cp config.template.json config.json
     "view": "active-accounts",
     "output": {
       "directory": "./output",
-      "fileName": "{entity}_{timestamp}.csv"
+      "fileName": "{entity}_{timestamp}.csv",
+      "useBom": true
     },
     "pageSize": 5000
   }

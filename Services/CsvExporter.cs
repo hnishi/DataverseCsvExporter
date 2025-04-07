@@ -19,7 +19,12 @@ public class CsvExporter
     var outputPath = GetOutputPath();
     EnsureOutputDirectory(outputPath);
 
-    await using var writer = new StreamWriter(outputPath);
+    var encoding = new System.Text.UTF8Encoding(true);
+    await using var writer = new StreamWriter(outputPath, false, encoding);
+    if (_config.Export.Output.UseBom)
+    {
+      await writer.BaseStream.WriteAsync(encoding.GetPreamble());
+    }
     await using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
     bool headerWritten = false;

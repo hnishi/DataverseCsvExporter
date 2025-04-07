@@ -65,4 +65,7 @@ public class OutputConfig
 
     [JsonPropertyName("fileName")]
     public string FileName { get; set; } = null!;
+
+    [JsonPropertyName("useBom")]
+    public bool UseBom { get; set; } = true;
 }

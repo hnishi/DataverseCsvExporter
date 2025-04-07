@@ -119,6 +119,7 @@ cp config.template.json config.json
   - `output`: Output settings
     - `directory`: Output directory
     - `fileName`: Output filename ({entity} and {timestamp} are automatically replaced)
+    - `useBom`: Whether to add BOM to UTF-8 encoded CSV file (true/false, default: true)
   - `pageSize`: Number of records to retrieve per request
 
 Configuration example:
@@ -135,7 +136,8 @@ Configuration example:
     "view": "active-accounts",
     "output": {
       "directory": "./output",
-      "fileName": "{entity}_{timestamp}.csv"
+      "fileName": "{entity}_{timestamp}.csv",
+      "useBom": true
     },
     "pageSize": 5000
   }

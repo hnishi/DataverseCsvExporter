@@ -9,7 +9,8 @@
     "view": "active-accounts",
     "output": {
       "directory": "./output",
-      "fileName": "{entity}_{timestamp}.csv"
+      "fileName": "{entity}_{timestamp}.csv",
+      "useBom": true
     },
     "pageSize": 5000
   }
