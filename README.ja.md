@@ -86,7 +86,9 @@ cp config.template.json config.json
 
 ## スタンドアローンバイナリの作成
 
-Windows 環境で実行可能なスタンドアローンバイナリを作成する手順です。
+Windows および macOS 環境で実行可能なスタンドアローンバイナリを作成する手順です。
+
+### Windows 向けビルド手順
 
 1. x64 アーキテクチャ向けビルド
 
@@ -106,15 +108,34 @@ dotnet publish -c Release -r win-x86 --self-contained true /p:PublishSingleFile=
 dotnet publish -c Release -r win-arm64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
 ```
 
-ビルドされたバイナリは以下のディレクトリに生成されます：
+Windows 向けのビルドされたバイナリは以下のディレクトリに生成されます：
 
 - x64: `bin/Release/net8.0/win-x64/publish/DataverseCsvExporter.exe`
 - x86: `bin/Release/net8.0/win-x86/publish/DataverseCsvExporter.exe`
 - ARM64: `bin/Release/net8.0/win-arm64/publish/DataverseCsvExporter.exe`
 
+### macOS 向けビルド手順
+
+1. Intel Mac（x64）向けビルド
+
+```bash
+dotnet publish -c Release -r osx-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+```
+
+2. Apple Silicon Mac（ARM64）向けビルド
+
+```bash
+dotnet publish -c Release -r osx-arm64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+```
+
+macOS 向けのビルドされたバイナリは以下のディレクトリに生成されます：
+
+- Intel Mac: `bin/Release/net8.0/osx-x64/publish/DataverseCsvExporter`
+- Apple Silicon: `bin/Release/net8.0/osx-arm64/publish/DataverseCsvExporter`
+
 注意事項：
 
-- 生成された EXE ファイルは.NET Runtime に依存せず、単独で実行可能です
+- 生成されたバイナリは.NET Runtime に依存せず、単独で実行可能です
 - アプリケーションの実行には、config.json が実行ファイルと同じディレクトリに必要です
 - 出力ディレクトリ（デフォルト: ./output）への書き込み権限が必要です
 

@@ -42,7 +42,9 @@ dotnet build
 
 ## Creating Standalone Binary
 
-Instructions for creating standalone binary files for Windows environment.
+Instructions for creating standalone binary files for Windows and macOS environments.
+
+### Windows Build Instructions
 
 1. Build for x64 architecture
 
@@ -62,15 +64,34 @@ dotnet publish -c Release -r win-x86 --self-contained true /p:PublishSingleFile=
 dotnet publish -c Release -r win-arm64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
 ```
 
-The built binaries are generated in the following directories:
+The built binaries for Windows are generated in the following directories:
 
 - x64: `bin/Release/net8.0/win-x64/publish/DataverseCsvExporter.exe`
 - x86: `bin/Release/net8.0/win-x86/publish/DataverseCsvExporter.exe`
 - ARM64: `bin/Release/net8.0/win-arm64/publish/DataverseCsvExporter.exe`
 
+### macOS Build Instructions
+
+1. Build for Intel Mac (x64)
+
+```bash
+dotnet publish -c Release -r osx-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+```
+
+2. Build for Apple Silicon Mac (ARM64)
+
+```bash
+dotnet publish -c Release -r osx-arm64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+```
+
+The built binaries for macOS are generated in the following directories:
+
+- Intel Mac: `bin/Release/net8.0/osx-x64/publish/DataverseCsvExporter`
+- Apple Silicon: `bin/Release/net8.0/osx-arm64/publish/DataverseCsvExporter`
+
 Notes:
 
-- The generated EXE files can run independently without .NET Runtime
+- The generated binaries can run independently without .NET Runtime
 - config.json must be in the same directory as the executable file
 - Write permissions to the output directory (default: ./output) are required
 
