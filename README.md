@@ -84,6 +84,40 @@ cp config.template.json config.json
 }
 ```
 
+## スタンドアローンバイナリの作成
+
+Windows 環境で実行可能なスタンドアローンバイナリを作成する手順です。
+
+1. x64 アーキテクチャ向けビルド
+
+```bash
+dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+```
+
+2. x86 アーキテクチャ向けビルド
+
+```bash
+dotnet publish -c Release -r win-x86 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+```
+
+3. ARM64 アーキテクチャ向けビルド
+
+```bash
+dotnet publish -c Release -r win-arm64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+```
+
+ビルドされたバイナリは以下のディレクトリに生成されます：
+
+- x64: `bin/Release/net8.0/win-x64/publish/DataverseCsvExporter.exe`
+- x86: `bin/Release/net8.0/win-x86/publish/DataverseCsvExporter.exe`
+- ARM64: `bin/Release/net8.0/win-arm64/publish/DataverseCsvExporter.exe`
+
+注意事項：
+
+- 生成された EXE ファイルは.NET Runtime に依存せず、単独で実行可能です
+- アプリケーションの実行には、config.json が実行ファイルと同じディレクトリに必要です
+- 出力ディレクトリ（デフォルト: ./output）への書き込み権限が必要です
+
 ## 実行手順
 
 1. アプリケーションの実行
