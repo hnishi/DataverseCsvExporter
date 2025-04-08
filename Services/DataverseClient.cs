@@ -3,6 +3,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Extensions.Logging;
 using DataverseCsvExporter.Models;
+using System.Xml.Linq;
 
 namespace DataverseCsvExporter.Services;
 
@@ -98,7 +99,7 @@ public class DataverseClient
 
         var query = new QueryExpression("savedquery")
         {
-            ColumnSet = new ColumnSet("fetchxml"),
+            ColumnSet = new ColumnSet("fetchxml", "layoutxml"),
             Criteria = new FilterExpression
             {
                 Conditions =
@@ -111,6 +112,36 @@ public class DataverseClient
 
         var result = await Task.Run(() => _client.RetrieveMultiple(query));
         return result.Entities.FirstOrDefault();
+    }
+
+    public async Task<List<string>> GetViewColumns(string viewName, string entityName)
+    {
+        var view = await GetSavedQuery(viewName, entityName);
+        if (view == null)
+            throw new ArgumentException($"View '{viewName}' not found for entity '{entityName}'");
+
+        var layoutXml = view.GetAttributeValue<string>("layoutxml");
+        if (string.IsNullOrEmpty(layoutXml))
+            throw new ArgumentException($"View '{viewName}' does not contain a valid layout definition");
+
+        try
+        {
+            var doc = XDocument.Parse(layoutXml);
+            var columns = doc.Descendants("cell")
+                .Select(cell => cell.Attribute("name")?.Value)
+                .Where(name => !string.IsNullOrEmpty(name))
+                .Select(name => name!)  // null許容性の警告を解消
+                .ToList();
+
+            if (!columns.Any())
+                throw new ArgumentException($"No columns found in view '{viewName}'");
+
+            return columns;
+        }
+        catch (Exception ex) when (ex is not ArgumentException)
+        {
+            throw new InvalidOperationException($"Failed to parse layout XML: {ex.Message}", ex);
+        }
     }
 
     private async Task<List<Entity>> HandlePagination(string fetchXml, int pageNumber, int pageSize)

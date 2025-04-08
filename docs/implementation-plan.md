@@ -1,80 +1,67 @@
-# Implementation Plan for Maximum Record Limit Feature
+# パフォーマンス改善計画：NormalizeAttributes の最適化
 
-## Overview
+## 概要
 
-Add maximum record count limit functionality to the Dataverse CSV Exporter.
+現在の `NormalizeAttributes` メソッドは、すべてのレコードを走査して列を特定する必要があり、パフォーマンスとメモリ使用の面で非効率です。この改善計画では、Dataverse のビュー定義から列情報を取得することで、処理を最適化します。
 
-## Changes Required
+## 実装詳細
 
-### 1. Configuration.cs
+### 1. DataverseClient の拡張
 
-- Add `MaxItemCount` property to `ExportConfig` class
-- Add validation for `MaxItemCount` (must be greater than 0 if specified)
-- Keep default value as null (unlimited)
-
-```csharp
-public class ExportConfig
-{
-    [JsonPropertyName("maxItemCount")]
-    public int? MaxItemCount { get; set; }
-
-    public void Validate()
-    {
-        if (MaxItemCount.HasValue && MaxItemCount.Value <= 0)
-        {
-            throw new ArgumentException("MaxItemCount must be greater than 0 if specified.");
-        }
-    }
-}
-```
-
-### 2. Configuration Files
-
-Update both config.json and config.template.json:
-
-```json
-{
-  "export": {
-    "maxItemCount": null // null means unlimited
-    // other existing settings...
-  }
-}
-```
-
-### 3. DataverseClient.cs
-
-- Add ILogger for logging
-- Implement record count limit in RetrieveData method
-- Add logging when maximum record count is reached
+- `savedquery` エンティティから列情報を取得する新しいメソッドを追加
+- ビューのレイアウト情報をキャッシュして再利用
 
 ```csharp
-public async IAsyncEnumerable<Entity> RetrieveData(string entityName, string viewName, int pageSize, int? maxItemCount = null)
+public async Task<List<string>> GetViewColumns(string viewName, string entityName)
 {
-    // ... existing code ...
-
-    var totalRetrieved = 0;
-    while (true)
-    {
-        foreach (var entity in results)
-        {
-            totalRetrieved++;
-            if (maxItemCount.HasValue && totalRetrieved > maxItemCount.Value)
-            {
-                _logger.LogInformation(
-                    "Maximum record count limit reached ({MaxItemCount}). Stopping data retrieval.",
-                    maxItemCount.Value);
-                yield break;
-            }
-
-            yield return entity;
-        }
-    }
+    var view = await GetSavedQuery(viewName, entityName);
+    // fetchxmlから列情報を抽出
+    return columns;
 }
 ```
 
-## Technical Details
+### 2. CsvExporter の最適化
 
-- Null value for MaxItemCount means no limit
-- Validation will ensure MaxItemCount is positive if specified
-- English log messages will be used for consistency
-- Existing pagination functionality remains unchanged
+- `NormalizeAttributes` メソッドを改善し、事前に取得した列情報を使用
+- メモリ効率を考慮したストリーミング処理の実装
+
+```csharp
+private List<Dictionary<string, string>> NormalizeAttributes(
+    IEnumerable<Dictionary<string, string>> records,
+    List<string> viewColumns)
+{
+    return records.Select(record =>
+    {
+        var normalizedRecord = new Dictionary<string, string>();
+        foreach (var column in viewColumns)
+        {
+            normalizedRecord[column] = record.ContainsKey(column) ? record[column] : string.Empty;
+        }
+        return normalizedRecord;
+    }).ToList();
+}
+```
+
+### 3. メモリ最適化
+
+- 必要な列のみを処理
+- 不要なメモリ割り当ての削減
+- ストリーミング処理の活用
+
+## 期待される効果
+
+1. パフォーマンスの向上
+   - レコード全体の走査が不要
+   - 列情報が事前に判明
+2. メモリ使用量の削減
+   - 必要な列のみを処理
+   - ストリーミング処理による効率化
+3. 保守性の向上
+   - ビューの定義に従った出力
+   - コードの意図がより明確
+
+## 実装手順
+
+1. `DataverseClient` に `GetViewColumns` メソッドを追加
+2. `CsvExporter` の `NormalizeAttributes` メソッドを改善
+3. メモリ効率を考慮したストリーミング処理の実装

@@ -10,23 +10,27 @@ public class CsvExporter
 {
   private readonly Configuration _config;
   private readonly ILogger<CsvExporter> _logger;
+  private readonly DataverseClient _client;
+  private List<string>? _viewColumns;
 
-  public CsvExporter(Configuration config, ILogger<CsvExporter> logger)
+  public CsvExporter(Configuration config, DataverseClient client, ILogger<CsvExporter> logger)
   {
     _config = config;
+    _client = client;
     _logger = logger;
   }
 
   private List<Dictionary<string, string>> NormalizeAttributes(IEnumerable<Dictionary<string, string>> records)
   {
-    var allKeys = records.SelectMany(record => record.Keys).Distinct().ToList();
+    if (_viewColumns == null)
+      throw new InvalidOperationException("View columns are not initialized");
 
     return records.Select(record =>
     {
       var normalizedRecord = new Dictionary<string, string>();
-      foreach (var key in allKeys)
+      foreach (var column in _viewColumns)
       {
-        normalizedRecord[key] = record.ContainsKey(key) ? record[key] : string.Empty;
+        normalizedRecord[column] = record.ContainsKey(column) ? record[column] : string.Empty;
       }
       return normalizedRecord;
     }).ToList();
@@ -34,6 +38,10 @@ public class CsvExporter
 
   public async Task ExportData(IAsyncEnumerable<Entity> entities)
   {
+    // ビューの列情報を取得
+    _viewColumns = await _client.GetViewColumns(_config.Export.View, _config.Export.Entity);
+    _logger.LogInformation("Retrieved {Count} columns from view {View}", _viewColumns.Count, _config.Export.View);
+
     var outputPath = GetOutputPath();
     EnsureOutputDirectory(outputPath);
 
@@ -55,11 +63,10 @@ public class CsvExporter
 
     var normalizedRecords = NormalizeAttributes(allRecords);
 
-    // Write header
-    var allKeys = normalizedRecords.First().Keys;
-    foreach (var key in allKeys)
+    // Write header using view columns
+    foreach (var column in _viewColumns!)
     {
-      csv.WriteField(key);
+      csv.WriteField(column);
     }
     csv.NextRecord();
 

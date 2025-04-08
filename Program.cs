@@ -35,7 +35,7 @@ public class Program
 
             // Initialize CSV exporter
             var exporterLogger = loggerFactory.CreateLogger<CsvExporter>();
-            var exporter = new CsvExporter(config, exporterLogger);
+            var exporter = new CsvExporter(config, client, exporterLogger);
 
             // Retrieve and export data
             var maxItemsMessage = config.Export.MaxItemCount.HasValue
