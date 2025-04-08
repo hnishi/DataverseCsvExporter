@@ -1,6 +1,6 @@
 # Dataverse CSV Exporter
 
-Dynamics 365 Sales の Dataverse からエンティティ名とビュー名を指定してデータを CSV にエクスポートするコンソールアプリケーションです。
+Dynamics 365 の Dataverse からエンティティ名とビュー名を指定してデータを CSV にエクスポートするコンソールアプリケーションです。
 
 ## 機能
 
@@ -13,7 +13,7 @@ Dynamics 365 Sales の Dataverse からエンティティ名とビュー名を�
 ## 必要要件
 
 - .NET 8.0 SDK
-- Dynamics 365 Sales 環境へのアクセス権限
+- Dynamics 365 環境へのアクセス権限
 - Azure AD 認証が有効なユーザーアカウント
 
 ## ビルド手順
@@ -63,6 +63,12 @@ cp config.template.json config.json
     - `fileName`: 出力ファイル名（{entity}と{timestamp}は自動で置換）
     - `useBom`: UTF-8 エンコードの CSV ファイルに BOM を付与するかどうか（true/false、デフォルト: true）
   - `pageSize`: 1 回のリクエストで取得するレコード数
+  - `maxItemCount`: 取得するレコードの最大数（省略可能）
+    - 指定した場合、指定した数のレコードを取得した時点でエクスポートを終了
+    - 省略した場合、全レコードを取得
+- ログ設定
+  - `minimumLevel`: ログ出力レベル（デフォルト: Information）
+    - 有効な値: trace, debug, information, warning, error, critical
 
 設定例：
 
@@ -81,7 +87,11 @@ cp config.template.json config.json
       "fileName": "{entity}_{timestamp}.csv",
       "useBom": true
     },
-    "pageSize": 5000
+    "pageSize": 5000,
+    "maxItemCount": null
+  },
+  "logging": {
+    "minimumLevel": "Information"
   }
 }
 ```

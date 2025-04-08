@@ -1,6 +1,6 @@
 # Dataverse CSV Exporter
 
-A console application that exports data from Dynamics 365 Sales Dataverse to CSV by specifying entity name and view name.
+A console application that exports data from Dynamics 365 Dataverse to CSV by specifying entity name and view name.
 
 > **Note:**
 > 日本語版ドキュメントは[こちら](README.ja.md)をご覧ください。
@@ -16,7 +16,7 @@ A console application that exports data from Dynamics 365 Sales Dataverse to CSV
 ## Requirements
 
 - .NET 8.0 SDK
-- Access rights to Dynamics 365 Sales environment
+- Access rights to Dynamics 365 environment
 - User account with Azure AD authentication enabled
 
 ## Build Instructions
@@ -121,6 +121,12 @@ cp config.template.json config.json
     - `fileName`: Output filename ({entity} and {timestamp} are automatically replaced)
     - `useBom`: Whether to add BOM to UTF-8 encoded CSV file (true/false, default: true)
   - `pageSize`: Number of records to retrieve per request
+  - `maxItemCount`: Maximum number of records to retrieve (optional)
+    - When specified, export stops after retrieving this many records
+    - When not specified, all records are retrieved
+- Logging settings
+  - `minimumLevel`: Minimum log level (default: Information)
+    - Valid values: trace, debug, information, warning, error, critical
 
 Configuration example:
 
@@ -139,7 +145,11 @@ Configuration example:
       "fileName": "{entity}_{timestamp}.csv",
       "useBom": true
     },
-    "pageSize": 5000
+    "pageSize": 5000,
+    "maxItemCount": null
+  },
+  "logging": {
+    "minimumLevel": "Information"
   }
 }
 ```
