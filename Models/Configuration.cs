@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace DataverseCsvExporter.Models;
 
@@ -8,6 +9,7 @@ public class Configuration
     {
         Dataverse = new DataverseConfig();
         Export = new ExportConfig();
+        Logging = new LoggingConfig();
     }
 
     [JsonPropertyName("dataverse")]
@@ -16,10 +18,14 @@ public class Configuration
     [JsonPropertyName("export")]
     public ExportConfig Export { get; set; }
 
+    [JsonPropertyName("logging")]
+    public LoggingConfig Logging { get; set; }
+
     public void Validate()
     {
         Dataverse?.Validate();
         Export?.Validate();
+        Logging?.Validate();
     }
 }
 
@@ -131,6 +137,41 @@ public class OutputConfig
         if (string.IsNullOrEmpty(FileName))
         {
             throw new ArgumentException("Output file name must be specified.");
+        }
+    }
+}
+
+public class LoggingConfig
+{
+    public LoggingConfig()
+    {
+        MinimumLevel = "Information";
+    }
+
+    [JsonPropertyName("minimumLevel")]
+    public string MinimumLevel { get; set; }
+
+    public LogLevel GetLogLevel()
+    {
+        return MinimumLevel?.ToLower() switch
+        {
+            "trace" => LogLevel.Trace,
+            "debug" => LogLevel.Debug,
+            "information" => LogLevel.Information,
+            "warning" => LogLevel.Warning,
+            "error" => LogLevel.Error,
+            "critical" => LogLevel.Critical,
+            _ => LogLevel.Information
+        };
+    }
+
+    public void Validate()
+    {
+        var validLevels = new[] { "trace", "debug", "information", "warning", "error", "critical" };
+        if (!validLevels.Contains(MinimumLevel?.ToLower()))
+        {
+            throw new ArgumentException(
+                $"Invalid log level: {MinimumLevel}. Valid values are: {string.Join(", ", validLevels)}");
         }
     }
 }

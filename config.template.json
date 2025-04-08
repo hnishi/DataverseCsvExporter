@@ -14,5 +14,8 @@
     },
     "pageSize": 5000,
     "maxItemCount": null
+  },
+  "logging": {
+    "minimumLevel": "Information"
   }
 }

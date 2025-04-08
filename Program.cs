@@ -6,15 +6,14 @@ namespace DataverseCsvExporter;
 
 public class Program
 {
-    private static ILogger<DataverseClient> CreateLogger()
+    private static ILoggerFactory CreateLoggerFactory(Configuration config)
     {
-        using var loggerFactory = LoggerFactory.Create(builder =>
+        return LoggerFactory.Create(builder =>
         {
             builder
                 .AddConsole()
-                .SetMinimumLevel(LogLevel.Information);
+                .SetMinimumLevel(config.Logging.GetLogLevel());
         });
-        return loggerFactory.CreateLogger<DataverseClient>();
     }
 
     public static async Task Main(string[] args)
@@ -26,13 +25,17 @@ public class Program
             configManager.LoadConfiguration();
             var config = configManager.GetSettings();
 
+            // Initialize logger factory
+            using var loggerFactory = CreateLoggerFactory(config);
+
             // Initialize Dataverse client and connect
-            var logger = CreateLogger();
-            var client = new DataverseClient(config, logger);
+            var dataverseLogger = loggerFactory.CreateLogger<DataverseClient>();
+            var client = new DataverseClient(config, dataverseLogger);
             await client.Connect();
 
             // Initialize CSV exporter
-            var exporter = new CsvExporter(config);
+            var exporterLogger = loggerFactory.CreateLogger<CsvExporter>();
+            var exporter = new CsvExporter(config, exporterLogger);
 
             // Retrieve and export data
             var maxItemsMessage = config.Export.MaxItemCount.HasValue

@@ -76,6 +76,13 @@ public class DataverseClient
                     yield break;
                 }
 
+                _logger.LogDebug(
+                    "Retrieved record {Count}: Entity={EntityName}, Id={EntityId}, Attributes={AttributeCount}",
+                    totalRetrieved,
+                    entityName,
+                    entity.Id,
+                    entity.Attributes.Count);
+
                 yield return entity;
             }
 

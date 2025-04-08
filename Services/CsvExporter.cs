@@ -1,5 +1,6 @@
 using System.Globalization;
 using CsvHelper;
+using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
 using DataverseCsvExporter.Models;
 
@@ -8,10 +9,27 @@ namespace DataverseCsvExporter.Services;
 public class CsvExporter
 {
   private readonly Configuration _config;
+  private readonly ILogger<CsvExporter> _logger;
 
-  public CsvExporter(Configuration config)
+  public CsvExporter(Configuration config, ILogger<CsvExporter> logger)
   {
     _config = config;
+    _logger = logger;
+  }
+
+  private List<Dictionary<string, string>> NormalizeAttributes(IEnumerable<Dictionary<string, string>> records)
+  {
+    var allKeys = records.SelectMany(record => record.Keys).Distinct().ToList();
+
+    return records.Select(record =>
+    {
+      var normalizedRecord = new Dictionary<string, string>();
+      foreach (var key in allKeys)
+      {
+        normalizedRecord[key] = record.ContainsKey(key) ? record[key] : string.Empty;
+      }
+      return normalizedRecord;
+    }).ToList();
   }
 
   public async Task ExportData(IAsyncEnumerable<Entity> entities)
@@ -27,23 +45,28 @@ public class CsvExporter
     }
     await using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
-    bool headerWritten = false;
+    var allRecords = new List<Dictionary<string, string>>();
 
     await foreach (var entity in entities)
     {
       var formattedData = FormatData(entity);
+      allRecords.Add(formattedData);
+    }
 
-      if (!headerWritten)
-      {
-        foreach (var key in formattedData.Keys)
-        {
-          csv.WriteField(key);
-        }
-        csv.NextRecord();
-        headerWritten = true;
-      }
+    var normalizedRecords = NormalizeAttributes(allRecords);
 
-      foreach (var value in formattedData.Values)
+    // Write header
+    var allKeys = normalizedRecords.First().Keys;
+    foreach (var key in allKeys)
+    {
+      csv.WriteField(key);
+    }
+    csv.NextRecord();
+
+    // Write records
+    foreach (var record in normalizedRecords)
+    {
+      foreach (var value in record.Values)
       {
         csv.WriteField(value);
       }
