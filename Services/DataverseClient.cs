@@ -1,6 +1,7 @@
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
+using Microsoft.Extensions.Logging;
 using DataverseCsvExporter.Models;
 
 namespace DataverseCsvExporter.Services;
@@ -8,12 +9,12 @@ namespace DataverseCsvExporter.Services;
 public class DataverseClient
 {
     private readonly string _connectionString;
+    private readonly ILogger<DataverseClient> _logger;
     private ServiceClient? _client;
 
-    public DataverseClient(Configuration config)
+    public DataverseClient(Configuration config, ILogger<DataverseClient> logger)
     {
-        // 接続文字列のフォーマットを修正
-        // 接続文字列のフォーマットを修正
+        _logger = logger;
         _connectionString = $@"
             AuthType = OAuth;
             Url = {config.Dataverse.Url};
@@ -41,7 +42,7 @@ public class DataverseClient
         }
     }
 
-    public async IAsyncEnumerable<Entity> RetrieveData(string entityName, string viewName, int pageSize)
+    public async IAsyncEnumerable<Entity> RetrieveData(string entityName, string viewName, int pageSize, int? maxItemCount = null)
     {
         if (_client == null)
             throw new InvalidOperationException("Client is not connected. Call Connect() first.");
@@ -56,6 +57,8 @@ public class DataverseClient
             throw new ArgumentException($"View '{viewName}' does not contain a valid FetchXML query");
 
         var pageNumber = 1;
+        var totalRetrieved = 0;
+
         while (true)
         {
             var results = await HandlePagination(fetchXml, pageNumber++, pageSize);
@@ -64,6 +67,15 @@ public class DataverseClient
 
             foreach (var entity in results)
             {
+                totalRetrieved++;
+                if (maxItemCount.HasValue && totalRetrieved > maxItemCount.Value)
+                {
+                    _logger.LogInformation(
+                        "Maximum record count limit reached ({MaxItemCount}). Stopping data retrieval.",
+                        maxItemCount.Value);
+                    yield break;
+                }
+
                 yield return entity;
             }
 

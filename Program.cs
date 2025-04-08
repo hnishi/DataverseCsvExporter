@@ -1,37 +1,55 @@
 ﻿using DataverseCsvExporter.Models;
 using DataverseCsvExporter.Services;
+using Microsoft.Extensions.Logging;
 
 namespace DataverseCsvExporter;
 
 public class Program
 {
+    private static ILogger<DataverseClient> CreateLogger()
+    {
+        using var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder
+                .AddConsole()
+                .SetMinimumLevel(LogLevel.Information);
+        });
+        return loggerFactory.CreateLogger<DataverseClient>();
+    }
+
     public static async Task Main(string[] args)
     {
         try
         {
-            // 設定の読み込み
+            // Load configuration
             var configManager = new ConfigurationManager();
             configManager.LoadConfiguration();
             var config = configManager.GetSettings();
 
-            // Dataverse クライアントの初期化と接続
-            var client = new DataverseClient(config);
+            // Initialize Dataverse client and connect
+            var logger = CreateLogger();
+            var client = new DataverseClient(config, logger);
             await client.Connect();
 
-            // CSV エクスポーターの初期化
+            // Initialize CSV exporter
             var exporter = new CsvExporter(config);
 
-            // データの取得とエクスポート
+            // Retrieve and export data
+            var maxItemsMessage = config.Export.MaxItemCount.HasValue
+                ? $"(max {config.Export.MaxItemCount.Value:N0} records)"
+                : "(no limit)";
+
+            ErrorHandler.LogToConsole($"Starting export: Entity={config.Export.Entity}, View={config.Export.View} {maxItemsMessage}");
+
             var data = client.RetrieveData(
                 config.Export.Entity,
                 config.Export.View,
-                config.Export.PageSize);
-
-            ErrorHandler.LogToConsole($"エクスポートを開始します: エンティティ={config.Export.Entity}, ビュー={config.Export.View}");
+                config.Export.PageSize,
+                config.Export.MaxItemCount);
 
             await exporter.ExportData(data);
 
-            ErrorHandler.LogToConsole("エクスポートが完了しました。");
+            ErrorHandler.LogToConsole("Export completed successfully.");
         }
         catch (Exception ex)
         {

@@ -15,6 +15,12 @@ public class Configuration
 
     [JsonPropertyName("export")]
     public ExportConfig Export { get; set; }
+
+    public void Validate()
+    {
+        Dataverse?.Validate();
+        Export?.Validate();
+    }
 }
 
 public class DataverseConfig
@@ -31,6 +37,24 @@ public class DataverseConfig
 
     [JsonPropertyName("password")]
     public string Password { get; set; } = null!;
+
+    public void Validate()
+    {
+        if (string.IsNullOrEmpty(Url))
+        {
+            throw new ArgumentException("Dataverse URL must be specified.");
+        }
+
+        if (string.IsNullOrEmpty(Username))
+        {
+            throw new ArgumentException("Username must be specified.");
+        }
+
+        if (string.IsNullOrEmpty(Password))
+        {
+            throw new ArgumentException("Password must be specified.");
+        }
+    }
 }
 
 public class ExportConfig
@@ -52,6 +76,34 @@ public class ExportConfig
 
     [JsonPropertyName("pageSize")]
     public int PageSize { get; set; }
+
+    [JsonPropertyName("maxItemCount")]
+    public int? MaxItemCount { get; set; }
+
+    public void Validate()
+    {
+        if (string.IsNullOrEmpty(Entity))
+        {
+            throw new ArgumentException("Entity name must be specified.");
+        }
+
+        if (string.IsNullOrEmpty(View))
+        {
+            throw new ArgumentException("View name must be specified.");
+        }
+
+        if (PageSize <= 0)
+        {
+            throw new ArgumentException("Page size must be greater than 0.");
+        }
+
+        if (MaxItemCount.HasValue && MaxItemCount.Value <= 0)
+        {
+            throw new ArgumentException("Maximum item count must be greater than 0 if specified.");
+        }
+
+        Output?.Validate();
+    }
 }
 
 public class OutputConfig
@@ -68,4 +120,17 @@ public class OutputConfig
 
     [JsonPropertyName("useBom")]
     public bool UseBom { get; set; } = true;
+
+    public void Validate()
+    {
+        if (string.IsNullOrEmpty(Directory))
+        {
+            throw new ArgumentException("Output directory must be specified.");
+        }
+
+        if (string.IsNullOrEmpty(FileName))
+        {
+            throw new ArgumentException("Output file name must be specified.");
+        }
+    }
 }
