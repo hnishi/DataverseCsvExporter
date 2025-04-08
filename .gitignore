@@ -13,6 +13,6 @@ obj/
 !.vscode/extensions.json
 
 ## Application specific
-config.json
+config.json*
 output/
 *.csv
