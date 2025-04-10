@@ -69,6 +69,7 @@ public class ExportConfig
     {
         Output = new OutputConfig();
         PageSize = 5000;
+        DateFormat = new DateFormatConfig();
     }
 
     [JsonPropertyName("entity")]
@@ -85,6 +86,9 @@ public class ExportConfig
 
     [JsonPropertyName("maxItemCount")]
     public int? MaxItemCount { get; set; }
+
+    [JsonPropertyName("dateFormat")]
+    public DateFormatConfig DateFormat { get; set; }
 
     public void Validate()
     {
@@ -109,6 +113,7 @@ public class ExportConfig
         }
 
         Output?.Validate();
+        DateFormat?.Validate();
     }
 }
 
@@ -137,6 +142,38 @@ public class OutputConfig
         if (string.IsNullOrEmpty(FileName))
         {
             throw new ArgumentException("Output file name must be specified.");
+        }
+    }
+}
+
+public class DateFormatConfig
+{
+    public DateFormatConfig()
+    {
+        EnableJstConversion = true;
+        DateTimeFormat = "yyyy/MM/dd HH:mm:ss";
+        DateFormat = "yyyy/MM/dd";
+    }
+
+    [JsonPropertyName("enableJstConversion")]
+    public bool EnableJstConversion { get; set; }
+
+    [JsonPropertyName("dateTimeFormat")]
+    public string DateTimeFormat { get; set; }
+
+    [JsonPropertyName("dateFormat")]
+    public string DateFormat { get; set; }
+
+    public void Validate()
+    {
+        if (string.IsNullOrEmpty(DateTimeFormat))
+        {
+            throw new ArgumentException("DateTime format must be specified.");
+        }
+
+        if (string.IsNullOrEmpty(DateFormat))
+        {
+            throw new ArgumentException("Date format must be specified.");
         }
     }
 }

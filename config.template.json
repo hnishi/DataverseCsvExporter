@@ -13,7 +13,12 @@
       "useBom": true
     },
     "pageSize": 5000,
-    "maxItemCount": null
+    "maxItemCount": null,
+    "dateFormat": {
+      "enableJstConversion": true,
+      "dateTimeFormat": "yyyy/MM/dd HH:mm:ss",
+      "dateFormat": "yyyy/MM/dd"
+    }
   },
   "logging": {
     "minimumLevel": "Information"

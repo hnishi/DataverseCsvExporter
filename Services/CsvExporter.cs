@@ -2,6 +2,7 @@ using System.Globalization;
 using CsvHelper;
 using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Metadata;
 using DataverseCsvExporter.Models;
 
 namespace DataverseCsvExporter.Services;
@@ -11,14 +12,15 @@ public class CsvExporter
   private readonly Configuration _config;
   private readonly ILogger<CsvExporter> _logger;
   private readonly DataverseClient _client;
+  private readonly DateFormatter _dateFormatter;
   private List<string>? _viewColumns;
-
-  public CsvExporter(Configuration config, DataverseClient client, ILogger<CsvExporter> logger)
-  {
-    _config = config;
-    _client = client;
-    _logger = logger;
-  }
+public CsvExporter(Configuration config, DataverseClient client, ILogger<CsvExporter> logger)
+{
+  _config = config;
+  _client = client;
+  _logger = logger;
+  _dateFormatter = new DateFormatter(config.Export.DateFormat);
+}
 
   private List<Dictionary<string, string>> NormalizeAttributes(IEnumerable<Dictionary<string, string>> records)
   {
@@ -83,18 +85,18 @@ public class CsvExporter
 
   private Dictionary<string, string> FormatData(Entity entity)
   {
-    var data = new Dictionary<string, string>();
+      var data = new Dictionary<string, string>();
 
-    foreach (var attribute in entity.Attributes)
-    {
-      var value = FormatAttributeValue(attribute.Value);
-      data[attribute.Key] = value;
-    }
+      foreach (var attribute in entity.Attributes)
+      {
+          var value = FormatAttributeValue(attribute.Value, attribute.Key);
+          data[attribute.Key] = value;
+      }
 
-    return data;
+      return data;
   }
 
-  private string FormatAttributeValue(object value)
+  private string FormatAttributeValue(object value, string attributeName)
   {
     return value switch
     {
@@ -102,10 +104,18 @@ public class CsvExporter
       EntityReference entityRef => entityRef.Name ?? entityRef.Id.ToString(),
       Money money => money.Value.ToString(CultureInfo.InvariantCulture),
       OptionSetValue optionSet => optionSet.Value.ToString(),
-      DateTime dateTime => dateTime.ToString("yyyy-MM-dd HH:mm:ss"),
+      DateTime dateTime => _dateFormatter.FormatDateTime(dateTime, IsDateOnlyAttribute(attributeName)),
       bool boolean => boolean.ToString().ToLower(),
       _ => value.ToString() ?? string.Empty
     };
+  }
+
+  private bool IsDateOnlyAttribute(string attributeName)
+  {
+    // Dataverseのメタデータから属性の型を取得して判定
+    var attributeMetadata = _client.GetAttributeMetadata(_config.Export.Entity, attributeName);
+    return attributeMetadata?.AttributeType == AttributeTypeCode.DateTime &&
+           (attributeMetadata as DateTimeAttributeMetadata)?.Format == DateTimeFormat.DateOnly;
   }
 
   private string GetOutputPath()

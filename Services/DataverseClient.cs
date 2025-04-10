@@ -1,6 +1,8 @@
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
+using Microsoft.Xrm.Sdk.Metadata;
+using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Extensions.Logging;
 using DataverseCsvExporter.Models;
 using System.Xml.Linq;
@@ -12,6 +14,7 @@ public class DataverseClient
     private readonly string _connectionString;
     private readonly ILogger<DataverseClient> _logger;
     private ServiceClient? _client;
+    private readonly Dictionary<string, Dictionary<string, AttributeMetadata>> _metadataCache = new();
 
     public DataverseClient(Configuration config, ILogger<DataverseClient> logger)
     {
@@ -161,5 +164,30 @@ public class DataverseClient
         return fetchXml.Replace(
             "<fetch",
             $"<fetch count='{pageSize}' page='{pageNumber}'");
+    }
+
+    public AttributeMetadata? GetAttributeMetadata(string entityName, string attributeName)
+    {
+        if (_client == null)
+            throw new InvalidOperationException("Client is not connected.");
+
+        // キャッシュにエンティティのメタデータがあるか確認
+        if (!_metadataCache.TryGetValue(entityName, out var attributeMetadata))
+        {
+            // エンティティのメタデータを取得
+            var request = new RetrieveEntityRequest
+            {
+                LogicalName = entityName,
+                EntityFilters = EntityFilters.Attributes,
+                RetrieveAsIfPublished = true
+            };
+
+            var response = (RetrieveEntityResponse)_client.Execute(request);
+            attributeMetadata = response.EntityMetadata.Attributes.ToDictionary(a => a.LogicalName);
+            _metadataCache[entityName] = attributeMetadata;
+        }
+
+        // 属性のメタデータを返す
+        return attributeMetadata.TryGetValue(attributeName, out var attribute) ? attribute : null;
     }
 }
