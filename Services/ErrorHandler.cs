@@ -34,11 +34,14 @@ public class ErrorHandler
       )
     };
 
+    var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
     // Log the error with appropriate level and structured data
     _logger.Log(
         level,
         ex,
-        "Error occurred: {ErrorMessage}. Exception type: {ExceptionType}",
+        "[{Timestamp}] Error occurred: {ErrorMessage}. Exception type: {ExceptionType}",
+        timestamp,
         message,
         ex.GetType().Name
     );
@@ -46,28 +49,33 @@ public class ErrorHandler
     // Log detailed exception information at debug level
     _logger.LogDebug(
         ex,
-        "Detailed exception information: {ExceptionDetails}",
+        "[{Timestamp}] Detailed exception information: {ExceptionDetails}",
+        timestamp,
         ex.ToString()
     );
   }
 
   public void LogInformation(string message, params object[] args)
   {
-    _logger.LogInformation(message, args);
+    var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+    _logger.LogInformation($"[{timestamp}] {message}", args);
   }
 
   public void LogWarning(string message, params object[] args)
   {
-    _logger.LogWarning(message, args);
+    var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+    _logger.LogWarning($"[{timestamp}] {message}", args);
   }
 
   public void LogError(string message, params object[] args)
   {
-    _logger.LogError(message, args);
+    var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+    _logger.LogError($"[{timestamp}] {message}", args);
   }
 
   public void LogDebug(string message, params object[] args)
   {
-    _logger.LogDebug(message, args);
+    var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+    _logger.LogDebug($"[{timestamp}] {message}", args);
   }
 }
