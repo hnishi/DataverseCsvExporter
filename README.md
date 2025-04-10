@@ -124,6 +124,10 @@ cp config.template.json config.json
   - `maxItemCount`: Maximum number of records to retrieve (optional)
     - When specified, export stops after retrieving this many records
     - When not specified, all records are retrieved
+  - `dateFormat`: Date and time format settings
+    - `enableJstConversion`: Whether to convert UTC to JST (true/false, default: true)
+    - `dateTimeFormat`: Format for datetime fields (default: "yyyy/MM/dd HH:mm:ss")
+    - `dateFormat`: Format for date fields (default: "yyyy/MM/dd")
 - Logging settings
   - `minimumLevel`: Minimum log level (default: Information)
     - Valid values: trace, debug, information, warning, error, critical
@@ -146,7 +150,12 @@ Configuration example:
       "useBom": true
     },
     "pageSize": 5000,
-    "maxItemCount": null
+    "maxItemCount": null,
+    "dateFormat": {
+      "enableJstConversion": true,
+      "dateTimeFormat": "yyyy/MM/dd HH:mm:ss",
+      "dateFormat": "yyyy/MM/dd"
+    }
   },
   "logging": {
     "minimumLevel": "Information"

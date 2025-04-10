@@ -9,6 +9,9 @@ Dynamics 365 の Dataverse からエンティティ名とビュー名を指定�
 - ページネーション処理による大量データの効率的な取得
 - CSV ファイルへのストリーミング出力
 - エラーハンドリングとログ出力
+- 日時データの柔軟な形式設定
+  - UTC から JST への自動変換
+  - datetime 型と date 型の個別フォーマット設定
 
 ## 必要要件
 
@@ -66,6 +69,10 @@ cp config.template.json config.json
   - `maxItemCount`: 取得するレコードの最大数（省略可能）
     - 指定した場合、指定した数のレコードを取得した時点でエクスポートを終了
     - 省略した場合、全レコードを取得
+  - `dateFormat`: 日付と時刻のフォーマット設定
+    - `enableJstConversion`: UTC から JST への変換を有効にするかどうか（true/false、デフォルト: true）
+    - `dateTimeFormat`: datetime 型フィールドのフォーマット（デフォルト: "yyyy/MM/dd HH:mm:ss"）
+    - `dateFormat`: date 型フィールドのフォーマット（デフォルト: "yyyy/MM/dd"）
 - ログ設定
   - `minimumLevel`: ログ出力レベル（デフォルト: Information）
     - 有効な値: trace, debug, information, warning, error, critical
@@ -88,7 +95,12 @@ cp config.template.json config.json
       "useBom": true
     },
     "pageSize": 5000,
-    "maxItemCount": null
+    "maxItemCount": null,
+    "dateFormat": {
+      "enableJstConversion": true,
+      "dateTimeFormat": "yyyy/MM/dd HH:mm:ss",
+      "dateFormat": "yyyy/MM/dd"
+    }
   },
   "logging": {
     "minimumLevel": "Information"
