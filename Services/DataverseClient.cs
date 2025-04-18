@@ -247,4 +247,14 @@ public class DataverseClient
         // 属性のメタデータを返す
         return attributeMetadata.TryGetValue(attributeName, out var attribute) ? attribute : null;
     }
+
+    public string? GetOptionSetLabel(string entityName, string attributeName, int value)
+    {
+        var metadata = GetAttributeMetadata(entityName, attributeName);
+        if (metadata is not EnumAttributeMetadata enumMetadata)
+            return null;
+
+        var option = enumMetadata.OptionSet?.Options.FirstOrDefault(o => o.Value == value);
+        return option?.Label?.UserLocalizedLabel?.Label;
+    }
 }

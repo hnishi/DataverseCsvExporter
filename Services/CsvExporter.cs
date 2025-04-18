@@ -103,7 +103,7 @@ public CsvExporter(Configuration config, DataverseClient client, ILogger<CsvExpo
       null => string.Empty,
       EntityReference entityRef => entityRef.Name ?? entityRef.Id.ToString(),
       Money money => money.Value.ToString(CultureInfo.InvariantCulture),
-      OptionSetValue optionSet => optionSet.Value.ToString(),
+      OptionSetValue optionSet => GetOptionSetDisplayName(optionSet, attributeName),
       DateTime dateTime => _dateFormatter.FormatDateTime(dateTime, IsDateOnlyAttribute(attributeName)),
       bool boolean => boolean.ToString().ToLower(),
       _ => value.ToString() ?? string.Empty
@@ -116,6 +116,21 @@ public CsvExporter(Configuration config, DataverseClient client, ILogger<CsvExpo
     var attributeMetadata = _client.GetAttributeMetadata(_config.Export.Entity, attributeName);
     return attributeMetadata?.AttributeType == AttributeTypeCode.DateTime &&
            (attributeMetadata as DateTimeAttributeMetadata)?.Format == DateTimeFormat.DateOnly;
+  }
+
+  private string GetOptionSetDisplayName(OptionSetValue optionSet, string attributeName)
+  {
+    var label = _client.GetOptionSetLabel(_config.Export.Entity, attributeName, optionSet.Value);
+    if (label == null)
+    {
+      _logger.LogWarning(
+        "Could not find label for option set value {Value} in attribute {Attribute} of entity {Entity}",
+        optionSet.Value,
+        attributeName,
+        _config.Export.Entity);
+      return optionSet.Value.ToString();
+    }
+    return label;
   }
 
   private string GetOutputPath()
