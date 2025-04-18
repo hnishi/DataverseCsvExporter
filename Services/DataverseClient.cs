@@ -15,6 +15,7 @@ public class DataverseClient
     private readonly ILogger<DataverseClient> _logger;
     private ServiceClient? _client;
     private readonly Dictionary<string, Dictionary<string, AttributeMetadata>> _metadataCache = new();
+    private readonly Dictionary<(string ViewName, string EntityName), Entity> _viewCache = new();
 
     public DataverseClient(Configuration config, ILogger<DataverseClient> logger)
     {
@@ -100,7 +101,63 @@ public class DataverseClient
         if (_client == null)
             throw new InvalidOperationException("Client is not connected.");
 
+        var cacheKey = (viewName, entityName);
+
+        // Check cache first
+        if (_viewCache.TryGetValue(cacheKey, out var cachedView))
+            return cachedView;
+
+        // First try to find system view
+        var systemView = await GetSystemView(viewName, entityName);
+        if (systemView != null)
+        {
+            _viewCache[cacheKey] = systemView;
+            return systemView;
+        }
+
+        // If system view not found, look for personal view
+        _logger.LogInformation(
+            "System view '{ViewName}' not found for entity '{EntityName}'. Searching personal views...",
+            viewName,
+            entityName);
+
+        var personalView = await GetPersonalView(viewName, entityName);
+        if (personalView != null)
+        {
+            _viewCache[cacheKey] = personalView;
+        }
+
+        return personalView;
+    }
+
+    private async Task<Entity?> GetSystemView(string viewName, string entityName)
+    {
+        if (_client == null)
+            throw new InvalidOperationException("Client is not connected.");
+
         var query = new QueryExpression("savedquery")
+        {
+            ColumnSet = new ColumnSet("fetchxml", "layoutxml"),
+            Criteria = new FilterExpression
+            {
+                Conditions =
+                {
+                    new ConditionExpression("name", ConditionOperator.Equal, viewName),
+                    new ConditionExpression("returnedtypecode", ConditionOperator.Equal, entityName)
+                }
+            }
+        };
+
+        var result = await Task.Run(() => _client.RetrieveMultiple(query));
+        return result.Entities.FirstOrDefault();
+    }
+
+    private async Task<Entity?> GetPersonalView(string viewName, string entityName)
+    {
+        if (_client == null)
+            throw new InvalidOperationException("Client is not connected.");
+
+        var query = new QueryExpression("userquery")
         {
             ColumnSet = new ColumnSet("fetchxml", "layoutxml"),
             Criteria = new FilterExpression
