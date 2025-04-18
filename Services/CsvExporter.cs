@@ -10,11 +10,11 @@ namespace DataverseCsvExporter.Services;
 public class CsvExporter
 {
   private readonly Configuration _config;
-  private readonly ILogger<CsvExporter> _logger;
+  private readonly LoggingService _logger;
   private readonly DataverseClient _client;
   private readonly DateFormatter _dateFormatter;
   private List<string>? _viewColumns;
-public CsvExporter(Configuration config, DataverseClient client, ILogger<CsvExporter> logger)
+public CsvExporter(Configuration config, DataverseClient client, LoggingService logger)
 {
   _config = config;
   _client = client;

@@ -19,7 +19,7 @@ public class Program
     public static async Task Main(string[] args)
     {
         ILoggerFactory? loggerFactory = null;
-        ErrorHandler? errorHandler = null;
+        LoggingService? loggingService = null;
 
         try
         {
@@ -31,25 +31,24 @@ public class Program
             // Initialize logger factory
             loggerFactory = CreateLoggerFactory(config);
 
-            // Initialize error handler
-            var errorLogger = loggerFactory.CreateLogger<ErrorHandler>();
-            errorHandler = new ErrorHandler(errorLogger);
+            // Initialize logging components
+            var logger = loggerFactory.CreateLogger("DataverseCsvExporter");
+            var logFormatter = new TimestampLogFormatter();
+            loggingService = new LoggingService(logger, logFormatter);
 
             // Initialize Dataverse client and connect
-            var dataverseLogger = loggerFactory.CreateLogger<DataverseClient>();
-            var client = new DataverseClient(config, dataverseLogger);
+            var client = new DataverseClient(config, loggingService);
             await client.Connect();
 
             // Initialize CSV exporter
-            var exporterLogger = loggerFactory.CreateLogger<CsvExporter>();
-            var exporter = new CsvExporter(config, client, exporterLogger);
+            var exporter = new CsvExporter(config, client, loggingService);
 
             // Log export parameters
             var maxItemsMessage = config.Export.MaxItemCount.HasValue
                 ? $"(max {config.Export.MaxItemCount.Value:N0} records)"
                 : "(no limit)";
 
-            errorHandler.LogInformation(
+            loggingService.LogInformation(
                 "Starting export - Entity: {Entity}, View: {View} {MaxItems}",
                 config.Export.Entity,
                 config.Export.View,
@@ -66,17 +65,17 @@ public class Program
 
             await exporter.ExportData(data);
 
-            errorHandler.LogInformation("Export completed successfully");
+            loggingService.LogInformation("Export completed successfully");
         }
         catch (Exception ex)
         {
-            if (errorHandler != null)
+            if (loggingService != null)
             {
-                errorHandler.HandleError(ex);
+                loggingService.HandleError(ex);
             }
             else
             {
-                // Fallback logging if error handler is not initialized
+                // Fallback logging if logging service is not initialized
                 Console.Error.WriteLine($"Critical error: {ex.Message}");
                 Console.Error.WriteLine($"Details: {ex}");
             }

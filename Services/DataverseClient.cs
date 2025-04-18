@@ -12,12 +12,12 @@ namespace DataverseCsvExporter.Services;
 public class DataverseClient
 {
     private readonly string _connectionString;
-    private readonly ILogger<DataverseClient> _logger;
+    private readonly LoggingService _logger;
     private ServiceClient? _client;
     private readonly Dictionary<string, Dictionary<string, AttributeMetadata>> _metadataCache = new();
     private readonly Dictionary<(string ViewName, string EntityName), Entity> _viewCache = new();
 
-    public DataverseClient(Configuration config, ILogger<DataverseClient> logger)
+    public DataverseClient(Configuration config, LoggingService logger)
     {
         _logger = logger;
         _connectionString = $@"
@@ -76,7 +76,7 @@ public class DataverseClient
                 if (maxItemCount.HasValue && totalRetrieved > maxItemCount.Value)
                 {
                     _logger.LogInformation(
-                        "Maximum record count limit reached ({MaxItemCount}). Stopping data retrieval.",
+                        "Maximum record count limit reached {MaxItemCount}. Stopping data retrieval.",
                         maxItemCount.Value);
                     yield break;
                 }

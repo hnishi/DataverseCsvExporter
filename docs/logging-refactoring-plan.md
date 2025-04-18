@@ -1,80 +1,63 @@
-# Logging Refactoring Plan
+# ログ出力の統一化実装計画
 
-## Current State Analysis
+## 目的
 
-### Existing Implementation
+全てのログメッセージに時刻を表示し、一貫性のあるログ出力を実現する
 
-1. Dual logging implementation
+## 現状の課題
 
-   - Microsoft.Extensions.Logging (CsvExporter, DataverseClient)
-   - Custom ErrorHandler class (Program.cs)
+1. ErrorHandler クラスのみが時刻表示を実装
+2. 他のサービス（DataverseClient, CsvExporter）は直接 ILogger を使用
+3. ログフォーマットが統一されていない
 
-2. Issues
+## 実装アプローチ
 
-   - Inconsistent logging methods
-   - Error messages in Japanese
-   - Limited ErrorHandler functionality (no log levels)
+### 1. ログフォーマッターの作成
 
-3. Good practices in place
-   - Proper ILoggerFactory configuration
-   - Structured logging in some classes
-   - Configurable log levels
+```mermaid
+classDiagram
+    class ILogFormatter {
+        +FormatMessage(string message, object[] args) string
+    }
+    class TimestampLogFormatter {
+        -string _dateFormat
+        +FormatMessage(string message, object[] args) string
+    }
+    ILogFormatter <|.. TimestampLogFormatter
+```
 
-## Improvement Plan
+### 2. 共通ログサービスの実装
 
-### Phase 1: Revamp ErrorHandler
+```mermaid
+classDiagram
+    class LoggingService {
+        -ILogger _logger
+        -ILogFormatter _formatter
+        +LogInformation(string message, object[] args)
+        +LogWarning(string message, object[] args)
+        +LogError(string message, object[] args)
+        +LogDebug(string message, object[] args)
+    }
+    LoggingService --> ILogFormatter
+```
 
-- Convert to ILogger-based implementation
-- Introduce log levels
-- Implement structured logging
+### 3. 既存サービスの修正
 
-### Phase 2: Improve Program.cs
+1. ErrorHandler の機能を LoggingService に統合
+2. 各サービスで LoggingService を使用するように修正
+   - DataverseClient
+   - CsvExporter
 
-- Replace ErrorHandler usage with ILogger
-- Enhance startup/completion logging
-- Improve global error handling
+## 実装手順
 
-### Phase 3: Standardize Messages
+1. ILogFormatter インターフェースと TimestampLogFormatter クラスの作成
+2. LoggingService クラスの実装
+3. 既存の ErrorHandler クラスの機能を LoggingService に移行
+4. DataverseClient と CsvExporter を LoggingService を使用するように修正
+5. Program.cs での DI 設定の更新
 
-- Convert all error messages to English
-- Unify log message format
-- Implement message templates
+## 期待される結果
 
-## Implementation Details
-
-### Phase 1: ErrorHandler Class Changes
-
-1. Add ILogger dependency
-2. Implement log levels based on error types
-3. Convert to structured logging format
-
-### Phase 2: Program.cs Updates
-
-1. Replace ErrorHandler.LogToConsole calls with ILogger
-2. Improve application lifecycle logging
-3. Enhance global exception handling
-
-### Phase 3: Message Standardization
-
-1. Translate all error messages to English
-2. Standardize log message formats
-3. Implement consistent message templates
-
-## Migration Guide
-
-1. ErrorHandler migration:
-
-   - Update service registration
-   - Replace direct Console usage
-   - Implement proper log levels
-
-2. Program.cs updates:
-
-   - Update logging initialization
-   - Replace legacy log calls
-   - Enhance error handling
-
-3. Message standardization:
-   - Update all error messages to English
-   - Implement consistent formatting
-   - Add message templates
+- すべてのログメッセージに統一された時刻表示
+- 一貫性のあるログフォーマット
+- メンテナンス性の向上
